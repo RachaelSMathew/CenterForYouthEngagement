@@ -1,0 +1,260 @@
+//
+//  Question Queries.swift
+//  AppBook
+//
+//  Created by Jeremy Kelleher on 11/16/18.
+//  Copyright © 2018 Project RAISE. All rights reserved.
+//
+import Foundation
+
+extension Database {
+    
+    static let SQL_EVENTS_TABLE_NAME = "calendar_events"
+    static let SQL_EVENTS_ID_COL_NAME = "id"
+    static let SQL_EVENTS_ALL_DAY_COL_NAME = "all_day"
+    static let SQL_EVENTS_RED_COL_NAME = "background_color_red"
+    static let SQL_EVENTS_GREEN_COL_NAME = "background_color_green"
+    static let SQL_EVENTS_BLUE_COL_NAME = "background_color_blue"
+    static let SQL_EVENTS_ALPHA_COL_NAME = "background_color_alpha"
+    static let SQL_EVENTS_END_TIME_COL_NAME = "end_time"
+    static let SQL_EVENTS_START_TIME_COL_NAME = "start_time"
+    static let SQL_EVENTS_TITLE_COL_NAME = "title"
+    static let SQL_EVENTS_REPEATED_COL_NAME = "repeated"
+    static let SQL_EVENTS_LOCATION_COL_NAME = "location"
+    static let SQL_EVENTS_TABLE_NAME_REPEATED = "calendar_events_repeated"
+
+    static func repeatEventInsert(event: EventCalView) {
+   
+        let sqlUpdateStatement = """
+        INSERT OR REPLACE INTO \(SQL_EVENTS_TABLE_NAME) (\(SQL_EVENTS_ID_COL_NAME), \(SQL_EVENTS_TITLE_COL_NAME), \(SQL_EVENTS_RED_COL_NAME), \(SQL_EVENTS_GREEN_COL_NAME), \(SQL_EVENTS_BLUE_COL_NAME), \(SQL_EVENTS_ALPHA_COL_NAME), \(SQL_EVENTS_END_TIME_COL_NAME), \(SQL_EVENTS_START_TIME_COL_NAME), \(SQL_EVENTS_ALL_DAY_COL_NAME), \(SQL_EVENTS_LOCATION_COL_NAME), \(SQL_EVENTS_REPEATED_COL_NAME)) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        do {
+            try database.executeUpdate(sqlUpdateStatement, values: [event.id, event.title, event.backgroundColor.redValue, event.backgroundColor.greenValue, event.backgroundColor.blueValue, event.backgroundColor.alphaValue, event.endDate, event.startDate, event.isAllDay, event.location ?? NSNull(), event.repeated])
+        } catch {
+            print("Error updating version in \(SQL_EVENTS_TABLE_NAME): \(database.lastErrorMessage())")
+            return
+        }
+    }
+    
+    static func repeatEventEdit(event: EventCalView) {
+        
+        let sqlUpdateStatement = """
+        UPDATE \(SQL_EVENTS_TABLE_NAME_REPEATED)
+        SET \(SQL_EVENTS_ALL_DAY_COL_NAME) = (?),
+        \(SQL_EVENTS_RED_COL_NAME) = (?),
+        \(SQL_EVENTS_GREEN_COL_NAME) = (?),
+        \(SQL_EVENTS_BLUE_COL_NAME) = (?),
+        \(SQL_EVENTS_ALPHA_COL_NAME) = (?),
+        \(SQL_EVENTS_END_TIME_COL_NAME) = (?),
+        \(SQL_EVENTS_START_TIME_COL_NAME) = (?),
+        \(SQL_EVENTS_TITLE_COL_NAME) = (?),
+        \(SQL_EVENTS_REPEATED_COL_NAME) = (?),
+        \(SQL_EVENTS_LOCATION_COL_NAME) = (?)
+        WHERE \(SQL_EVENTS_ID_COL_NAME) = (?)
+        
+        """
+
+        do {
+            try database.executeUpdate(sqlUpdateStatement, values: [event.isAllDay, event.backgroundColor.redValue, event.backgroundColor.greenValue, event.backgroundColor.blueValue, event.backgroundColor.alphaValue, event.endDate, event.startDate, event.title, event.repeated, event.location, event.repeatedEventId])
+            
+        } catch {
+            print("Error updating version in \(SQL_EVENTS_TABLE_NAME): \(database.lastErrorMessage())")
+            return
+        }
+        
+    }
+    static func updateEvent(event: EventCalView) {
+        let sqlUpdateStatement = """
+        UPDATE \(SQL_EVENTS_TABLE_NAME)
+        SET \(SQL_EVENTS_ALL_DAY_COL_NAME) = (?),
+        \(SQL_EVENTS_RED_COL_NAME) = (?),
+        \(SQL_EVENTS_GREEN_COL_NAME) = (?),
+        \(SQL_EVENTS_BLUE_COL_NAME) = (?),
+        \(SQL_EVENTS_ALPHA_COL_NAME) = (?),
+        \(SQL_EVENTS_END_TIME_COL_NAME) = (?),
+        \(SQL_EVENTS_START_TIME_COL_NAME) = (?),
+        \(SQL_EVENTS_TITLE_COL_NAME) = (?),
+        \(SQL_EVENTS_REPEATED_COL_NAME) = (?),
+        \(SQL_EVENTS_LOCATION_COL_NAME) = (?)
+        WHERE \(SQL_EVENTS_ID_COL_NAME) = (?)
+        
+        """
+   
+        do {
+            try database.executeUpdate(sqlUpdateStatement, values: [event.isAllDay, event.backgroundColor.redValue, event.backgroundColor.greenValue, event.backgroundColor.blueValue, event.backgroundColor.alphaValue, event.endDate, event.startDate, event.title, event.repeated, event.location, event.id])
+            
+        } catch {
+            print("Error updating version in \(SQL_EVENTS_TABLE_NAME): \(database.lastErrorMessage())")
+            return
+        }
+    }
+    static func insert(event: EventCalView) {
+        let sqlUpdateStatement = """
+        INSERT OR REPLACE INTO \(SQL_EVENTS_TABLE_NAME) (\(SQL_EVENTS_ID_COL_NAME), \(SQL_EVENTS_TITLE_COL_NAME), \(SQL_EVENTS_RED_COL_NAME), \(SQL_EVENTS_GREEN_COL_NAME), \(SQL_EVENTS_BLUE_COL_NAME), \(SQL_EVENTS_ALPHA_COL_NAME), \(SQL_EVENTS_END_TIME_COL_NAME), \(SQL_EVENTS_START_TIME_COL_NAME), \(SQL_EVENTS_ALL_DAY_COL_NAME), \(SQL_EVENTS_LOCATION_COL_NAME), \(SQL_EVENTS_REPEATED_COL_NAME)) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        do {
+            try database.executeUpdate(sqlUpdateStatement, values: [event.id, event.title, event.backgroundColor.redValue, event.backgroundColor.greenValue, event.backgroundColor.blueValue, event.backgroundColor.alphaValue, event.endDate, event.startDate, event.isAllDay, event.location ?? NSNull(), event.repeated])
+        } catch {
+            print("Error updating version in \(SQL_EVENTS_TABLE_NAME): \(database.lastErrorMessage())")
+            return
+        }
+
+    }
+    
+    static func removeOneEvent(id: Int) {
+        
+        let delete = """
+    DELETE FROM \(SQL_EVENTS_TABLE_NAME) WHERE \(SQL_EVENTS_ID_COL_NAME) = (?)
+    """
+        do {
+            try database.executeUpdate(delete, values: [id])
+        } catch {
+            print("Error deleting draggables from quiz \(id). Error message: \(database.lastErrorMessage())")
+            return
+        }
+    }
+    
+    static func fetchCalEvents(eventsCalData: FMResultSet) -> Any {
+        
+        let eventId = Int(eventsCalData.int(forColumn: SQL_EVENTS_ID_COL_NAME))
+        
+        guard let eventTitle = eventsCalData.string(forColumn: SQL_EVENTS_TITLE_COL_NAME) else {
+            print("Event \(eventId) doesn't have a title")
+            return 0
+        }
+
+        guard let backGroundColorString_red = eventsCalData.object(forColumn: SQL_EVENTS_RED_COL_NAME) else {
+            print("Event \(eventId) doesn't have a background color")
+            return 0
+        }
+        guard let backGroundColorString_green = eventsCalData.object(forColumn: SQL_EVENTS_GREEN_COL_NAME) else {
+            print("Event \(eventId) doesn't have a background color")
+            return 0
+        }
+        guard let backGroundColorString_blue = eventsCalData.object(forColumn: SQL_EVENTS_BLUE_COL_NAME) else {
+            print("Event \(eventId) doesn't have a background color")
+            return 0
+        }
+        guard let backGroundColorString_alpha = eventsCalData.object(forColumn: SQL_EVENTS_ALPHA_COL_NAME) else {
+            print("Event \(eventId) doesn't have a background color")
+            return 0
+        }
+        
+        let redColor: CGFloat = 1
+        let greenColor: CGFloat = 0.95
+        let blueColor: CGFloat = 0.74
+        let alphaColor: CGFloat = 0.3
+        var arrayColor = [redColor, greenColor, blueColor, alphaColor]
+
+        let colorValue = UIColor(red: backGroundColorString_red as! CGFloat, green: backGroundColorString_green as! CGFloat, blue: backGroundColorString_blue as! CGFloat, alpha: backGroundColorString_alpha as! CGFloat)
+        
+        arrayColor[0] = colorValue.redValue
+        arrayColor[1] = colorValue.greenValue
+        arrayColor[2] = colorValue.blueValue
+        arrayColor[3] = colorValue.alphaValue
+
+        guard let startDate = eventsCalData.date(forColumn: SQL_EVENTS_START_TIME_COL_NAME) else {
+            print("Event \(eventId) doesn't have a start time")
+            return 0
+        }
+        
+        guard let endDate = eventsCalData.date(forColumn: SQL_EVENTS_END_TIME_COL_NAME) else {
+            print("Event \(eventId) doesn't have a end time")
+            return 0
+        }
+        
+        let isRepeated = eventsCalData.bool(forColumn: SQL_EVENTS_REPEATED_COL_NAME)
+        
+        let isAllDay = eventsCalData.bool(forColumn: SQL_EVENTS_ALL_DAY_COL_NAME)
+
+        let location = eventsCalData.string(forColumn: SQL_EVENTS_LOCATION_COL_NAME) ?? ""
+        
+        var colorEvent = UIColor(red: arrayColor[0], green: arrayColor[1], blue: arrayColor[2], alpha: arrayColor[3])
+        
+        let event = EventCalView(id: eventId, title: eventTitle, location: location, repeated: isRepeated, startDate: startDate, endDate: endDate, backgroundColor: colorEvent, isAllDay: isAllDay)
+
+        return event
+    }
+    static func fetchCalEventsRepeated(countEvent: Int) -> [EventCalView] {
+        var count = countEvent
+
+        var events = [EventCalView]()
+        let eventsCal =  "SELECT * FROM \(SQL_EVENTS_TABLE_NAME_REPEATED)"
+        
+        guard let eventsCalData = try? database.executeQuery(eventsCal, values: []) else {
+            fatalError("Could not retrieve question: \(database.lastErrorMessage())")
+        }
+        let repeatedEventId = Int(eventsCalData.int(forColumn: SQL_EVENTS_ID_COL_NAME))
+        while eventsCalData.next() {
+            
+            let eventCalFetch = fetchCalEvents(eventsCalData: eventsCalData) as! EventCalView
+            
+            var weekStartDay = getDayOfWeek(myDate: Date(), day: Calendar.current.component(.weekday, from: eventCalFetch.startDate))
+            var dateComponent = DateComponents()
+            dateComponent.hour = eventCalFetch.startDate.hour
+            dateComponent.minute = eventCalFetch.startDate.minute
+            weekStartDay = Calendar.current.date(byAdding: dateComponent, to: weekStartDay)!
+            
+            if eventCalFetch.startDate >= Date().dayAfter {
+                weekStartDay = eventCalFetch.startDate
+            }
+            
+            var weekEndDay = getDayOfWeek(myDate: Date(), day: Calendar.current.component(.weekday, from: eventCalFetch.endDate))
+            dateComponent.hour = eventCalFetch.endDate.hour
+            dateComponent.minute = eventCalFetch.endDate.minute
+            weekEndDay = Calendar.current.date(byAdding: dateComponent, to: weekEndDay)!
+            
+            if eventCalFetch.endDate >= Date().dayAfter {
+                weekEndDay = eventCalFetch.endDate
+            }
+            
+        for n in 1...4 {
+
+               var dateComponent = DateComponents()
+               
+               dateComponent.day = 7
+   
+            if n == 1 {
+                dateComponent.day = 0
+            }
+ 
+            weekStartDay = Calendar.current.date(byAdding: dateComponent, to: weekStartDay)!
+               weekEndDay = Calendar.current.date(byAdding: dateComponent, to: weekEndDay)!
+
+            let eventWeekly = EventCalView(id: count, title: eventCalFetch.title, location: eventCalFetch.location!, repeated: eventCalFetch.repeated, startDate: weekStartDay, endDate: weekEndDay, backgroundColor: eventCalFetch.backgroundColor, isAllDay: eventCalFetch.isAllDay, repeatedEventId: repeatedEventId)
+
+               events.append(eventWeekly)
+            count += 1
+           }
+            
+        }
+        return events
+    }
+    static func fetchAllCalendarEvents() -> [EventCalView] {
+
+        var events = [EventCalView]()
+        let eventsCal =  "SELECT * FROM \(SQL_EVENTS_TABLE_NAME)"
+        
+        guard let eventsCalData = try? database.executeQuery(eventsCal, values: []) else {
+            fatalError("Could not retrieve question: \(database.lastErrorMessage())")
+        }
+
+        while eventsCalData.next() {
+            let event = fetchCalEvents(eventsCalData: eventsCalData)
+         
+            events.append(event as! EventCalView)
+        }
+
+        events.append(contentsOf: fetchCalEventsRepeated(countEvent: events.count))
+
+        return events
+    }
+    static func getDayOfWeek(myDate: Date, day: Int) -> Date {
+        let cal = Calendar.current
+        var comps = cal.dateComponents([.weekOfYear, .yearForWeekOfYear], from: myDate)
+        comps.weekday = day // Monday
+        let mondayInWeek = cal.date(from: comps)!
+        return mondayInWeek
+    }
+}
