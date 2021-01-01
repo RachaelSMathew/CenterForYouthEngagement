@@ -1,0 +1,594 @@
+
+//
+//  CreateCalendarEventModal.swift
+//  AppBook
+//
+//  Created by Jeremy Kelleher on 6/15/20.
+//  Copyright © 2020 Project RAISE. All rights reserved.
+//
+import UIKit
+
+class CreateCalendarEventModal: ModalViewController {
+    
+    let datePicker = UIDatePicker()
+    var startDateCal = Date()
+    var endDateCal = Date()
+    var idEvent: Int = -1
+    var event: Any = 0
+    
+    //Checkbox for Repeat Weekly is remove as horizontalStackView
+    private lazy var verticalStackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleTextField, locationTextField, datePickerTextField, datePickerTextFieldEnd, horizontalStackView2, categoryEventColorText, horizontalStackView3, horizontalStackView4])
+        stack.spacing = 15
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        return stack
+    }()
+    
+    static func returnHorizontalStack(array: [UIView]) -> UIStackView {
+        let stack = UIStackView(arrangedSubviews: array)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        return stack
+    }
+ /*  private lazy var horizontalStackView: UIStackView = {
+        let stack = CreateCalendarEventModal.returnHorizontalStack(array: [repeatedCheckBoxImage, repeatedText])
+        return stack
+    }()*/
+    
+    private lazy var horizontalStackView2: UIStackView = {
+        let stack = CreateCalendarEventModal.returnHorizontalStack(array: [checkBoxImage, allDayText])
+        return stack
+    }()
+    
+    private lazy var horizontalStackView3: UIStackView = {
+        let stack = CreateCalendarEventModal.returnHorizontalStack(array: [burgundyColor, yellowColor, blueColor, purpleColor])
+        stack.spacing = 20
+        return stack
+    }()
+    private lazy var horizontalStackView4: UIStackView = {
+
+    let stack = CreateCalendarEventModal.returnHorizontalStack(array: [saveButton, deleteButton])
+         return stack
+    }()
+    static func returnUILabel() -> UILabel {
+        let text = UILabel()
+        text.font = UIFont.boldSystemFont(ofSize: 20)
+        text.textColor = .white
+        text.textAlignment = .left
+        text.translatesAutoresizingMaskIntoConstraints = false
+
+        return text
+    }
+    let repeatedText = { () -> UILabel in
+        let text = returnUILabel()
+        text.text = "Repeat Weekly Event?"
+        return text
+    }()
+    
+    let categoryEventColorText = { () -> UILabel in
+        let text = returnUILabel()
+        text.font = UIFont.boldSystemFont(ofSize: 20)
+        text.text = "Category Event Color"
+        text.textAlignment = .center
+        return text
+    }()
+    
+    let allDayText = { () -> UILabel in
+        let text = returnUILabel()
+        text.text = "All Day Event?"
+        return text
+    }()
+    
+    static func returnUITextField() -> UITextField {
+        let textField = UITextField(frame: .zero)
+        textField.textAlignment = .center
+        textField.typingAttributes = RaiseTextStyle.editTextModalContentSyle.attributes
+        textField.borderStyle = .roundedRect
+        textField.backgroundColor = RaiseColor.white
+        textField.translatesAutoresizingMaskIntoConstraints = false
+
+        return textField
+    }
+    let titleTextField = { () -> UITextField in
+        let textField = returnUITextField()
+        textField.placeholder = StringID.a1184aa7d02b14ce5aa47b813b57b0716.localized
+        return textField
+    }()
+    
+    let datePickerTextField = { () -> UITextField in
+        let textField = returnUITextField()
+        textField.placeholder = StringID.a88731a0091a040b89506aa72c3db6423.localized
+        return textField
+    }()
+    
+    let datePickerTextFieldEnd = { () -> UITextField in
+        let textField = returnUITextField()
+        textField.placeholder = StringID.a3e92b94e763245348ea7b41f35251541.localized
+        return textField
+    
+    }()
+    
+    let locationTextField = { () -> UITextField in
+        let textField = returnUITextField()
+        textField.placeholder = StringID.a8af4f8a1c8e74643b973ceea429002c0.localized
+        return textField
+    }()
+    
+    static func returnUIButton(normal: String, selected: String) -> UIButton {
+        let button = UIButton()
+        button.setImage(UIImage(preferedName: normal), for: .normal)
+        button.setImage(UIImage(preferedName: selected), for: .selected)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isSelected = false
+        return button
+    }
+    let checkBoxImage = { () -> UIButton in
+        let button = returnUIButton(normal: "UnCheckbox_2", selected: "Checkbox_2")
+        button.addTarget(self, action: #selector(checkBoxTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    let repeatedCheckBoxImage = { () -> UIButton in
+        let button = returnUIButton(normal: "UnCheckbox", selected: "Checkbox")
+        button.addTarget(self, action: #selector(checkBoxTappedRepeat), for: .touchUpInside)
+        return button
+    }()
+    
+    static func returnColor(normal: String, selected: String) -> UIButton {
+        let button = UIButton()
+       button.setImage(UIImage(preferedName: normal), for: .normal)
+       button.setImage(UIImage(preferedName: selected), for: .selected)
+        
+       button.translatesAutoresizingMaskIntoConstraints = false
+       return button
+    }
+    let burgundyColor = { () -> UIButton in
+        let button = returnColor(normal: "BurgundyColor", selected: "BurgundyColorHighlighted")
+        button.addTarget(self, action: #selector(checkBoxTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    let yellowColor = { () -> UIButton in
+        let button = returnColor(normal: "YellowColor", selected: "YellowColorHighlighted")
+        button.addTarget(self, action: #selector(checkBoxTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    let purpleColor = { () -> UIButton in
+        let button = returnColor(normal: "PurpleColor", selected: "PurpleColorHighlighted")
+        button.addTarget(self, action: #selector(checkBoxTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    let blueColor = { () -> UIButton in
+        let button = returnColor(normal: "BlueColor", selected: "BlueColorHighlighted")
+        button.addTarget(self, action: #selector(checkBoxTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    lazy var saveButton = { () -> ActionButton in
+        let button = ActionButton(centerLabelText: StringID.aa7da749466d2414591dc355bcd247790.localized)
+        button.addTarget(self, action: #selector(saveButtonPressed), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    lazy var deleteButton = { () -> ActionButton in
+        let button = ActionButton(centerLabelText: "Delete")
+        button.addTarget(self, action: #selector(deleteButtonPressed), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    weak var delegate: CreateCalendarEventModalDelegate?
+    
+    init(id: Int = -1, event: Any = 0) {
+        
+        super.init(injectables: [])
+        self.injectables = [verticalStackView]
+        
+        if id != -1 {
+            
+            self.idEvent = id
+            self.event = event as! EventCalView
+        }
+        var arrayCon = [titleTextField.heightAnchor.constraint(equalToConstant: 50),
+          titleTextField.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+        
+          locationTextField.heightAnchor.constraint(equalToConstant: 50),
+          locationTextField.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          checkBoxImage.heightAnchor.constraint(equalToConstant: 40),
+          checkBoxImage.widthAnchor.constraint(equalTo: horizontalStackView2.widthAnchor),
+          
+         // repeatedText.heightAnchor.constraint(equalToConstant: 50),
+         // repeatedText.widthAnchor.constraint(equalTo: horizontalStackView.widthAnchor),
+          
+         // horizontalStackView.heightAnchor.constraint(equalToConstant: 60),
+         // horizontalStackView.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+         // repeatedCheckBoxImage.heightAnchor.constraint(equalToConstant: 40),
+        // repeatedCheckBoxImage.widthAnchor.constraint(equalTo: horizontalStackView.widthAnchor),
+          
+          allDayText.heightAnchor.constraint(equalToConstant: 50),
+          allDayText.widthAnchor.constraint(equalTo: horizontalStackView2.widthAnchor),
+          
+          horizontalStackView2.heightAnchor.constraint(equalToConstant: 60),
+          horizontalStackView2.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          horizontalStackView3.heightAnchor.constraint(equalToConstant: 60),
+          horizontalStackView3.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          horizontalStackView4.heightAnchor.constraint(equalToConstant: 60),
+          horizontalStackView4.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          datePickerTextField.heightAnchor.constraint(equalToConstant: 50),
+          datePickerTextField.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          categoryEventColorText.heightAnchor.constraint(equalToConstant: 50),
+          categoryEventColorText.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          datePickerTextFieldEnd.heightAnchor.constraint(equalToConstant: 50),
+          datePickerTextFieldEnd.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor),
+          
+          burgundyColor.heightAnchor.constraint(equalToConstant: 80),
+          burgundyColor.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 0.1),
+          
+          yellowColor.heightAnchor.constraint(equalToConstant: 80),
+          yellowColor.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 0.1),
+          
+          purpleColor.heightAnchor.constraint(equalToConstant: 80),
+          purpleColor.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 0.1),
+          
+          blueColor.heightAnchor.constraint(equalToConstant: 80),
+          blueColor.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 0.1), ]
+
+            arrayCon.append(self.saveButton.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 0.5))
+            arrayCon.append(self.saveButton.heightAnchor.constraint(equalToConstant: 30))
+            arrayCon.append(self.deleteButton.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 0.5))
+            arrayCon.append(self.deleteButton.heightAnchor.constraint(equalToConstant: 30))
+
+        NSLayoutConstraint.activate(arrayCon)
+        if id != -1 {
+            titleTextField.text = "\((event as! EventCalView).title)"
+            locationTextField.text = "\((event as! EventCalView).location)"
+
+            if locationTextField.text == "Optional(\"\")" {
+                locationTextField.text = ""
+            }
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            datePickerTextField.text = formatter.string(from: (event as! EventCalView).startDate)
+            
+            datePickerTextFieldEnd.text = formatter.string(from: (event as! EventCalView).endDate)
+            
+            if (event as! EventCalView).repeated {
+                repeatedCheckBoxImage.isSelected = true
+            }
+
+            if (event as! EventCalView).isAllDay {
+                checkBoxImage.isSelected = true
+            }
+
+            if (event as! EventCalView).backgroundColor == UIColor(red: 0.92, green: 0.59, blue: 0.58, alpha: 1.00) {
+                burgundyColor.isSelected = true
+            }
+            if (event as! EventCalView).backgroundColor == UIColor(red: 0.83, green: 0.77, blue: 0.98, alpha: 1.00) {
+                purpleColor.isSelected = true
+            }
+            if (event as! EventCalView).backgroundColor == UIColor(red: 1.00, green: 0.95, blue: 0.74, alpha: 1.00) {
+                yellowColor.isSelected = true
+            }
+            if (event as! EventCalView).backgroundColor == UIColor(red: 0.75, green: 0.83, blue: 0.95, alpha: 1.00) {
+                blueColor.isSelected = true
+            }
+        }
+        if self.idEvent == -1 {
+            createDatePicker()
+        }
+        if id == -1 {
+            deleteButton.isHidden = true
+        }
+   
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func willOpen(in viewController: UIViewController) {
+        super.willOpen(in: viewController)
+        
+        NSLayoutConstraint.activate([
+            verticalStackView.widthAnchor.constraint(equalTo: self.outerStackView.widthAnchor),
+        ])
+        
+    }
+    
+    func showAlert(title: String, desc: String) {
+        let alertController = UIAlertController(title: title, message:
+            desc, preferredStyle: .alert)
+        if title == "Are you sure you want to delete?" {
+         alertController.addAction(UIAlertAction(title: "Delete", style: .default, handler: { action in
+        
+                Database.removeOneEvent(id: self.idEvent)
+            
+            var index = 0
+            for n in CalendarCareerViewController.events {
+                if n.id == self.idEvent {
+                    CalendarCareerViewController.events.remove(at: index)
+                }
+                index += 1
+            }
+            
+            NotificationCenter.default.post(name: .careerCalendarEdittedEvent, object: nil)
+            
+            NotificationCenter.default.removeObserver(CalendarCareerViewController.self)
+                self.closeModalPresentation()
+            
+        }))
+        }
+        alertController.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil))
+
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
+    @objc func deleteButtonPressed() {
+        showAlert(title: "Are you sure you want to delete?", desc: "You can not restore")
+    }
+    @objc func saveButtonPressed() {
+     
+        if titleTextField.text == "" && datePickerTextField.text == "" && datePickerTextFieldEnd.text == "" && !checkBoxImage.isSelected && !repeatedCheckBoxImage.isSelected && locationTextField.text == "" {
+             self.closeModalPresentation()
+        } else {
+       
+            if (titleTextField.text == "" && datePickerTextField.text != "" && datePickerTextFieldEnd.text != "") || (titleTextField.text != "" && datePickerTextField.text == "" && datePickerTextFieldEnd.text != "") || (titleTextField.text != "" && datePickerTextField.text != "" && datePickerTextFieldEnd.text == "") {
+                showAlert(title: "Remember to add a title", desc: "")
+            } else {
+
+                let text = titleTextField.text!
+                
+                var color = UIColor(hexString: "DFE6E9")
+                 if burgundyColor.isSelected {
+
+                     color = UIColor(red: 0.92, green: 0.59, blue: 0.58, alpha: 1.00)
+                 }
+                 if yellowColor.isSelected {
+                     color = UIColor(red: 1.00, green: 0.95, blue: 0.74, alpha: 1.00)
+                 }
+                 if blueColor.isSelected {
+                    color = UIColor(red: 0.75, green: 0.83, blue: 0.95, alpha: 1.00)
+
+                }
+                if purpleColor.isSelected {
+                    color = UIColor(red: 0.83, green: 0.77, blue: 0.98, alpha: 1.00)
+
+                }
+
+                var dateStart = datePickerTextField.text!
+                var dateEnd = datePickerTextFieldEnd.text!
+                if let range = dateStart.range(of: "at") {
+                    
+                   dateStart.removeSubrange(range)
+                  
+                }
+                if let range = dateEnd.range(of: "at") {
+            
+                   dateEnd.removeSubrange(range)
+                }
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MMM dd, yyyy hh:mm a"
+                var dateStartCal = dateFormatter.date(from: dateStart)!
+                var dateEndCal = dateFormatter.date(from: dateEnd)!
+                let diffComponents = Calendar.current.dateComponents([.hour], from: dateStartCal, to: dateEndCal)
+                
+                if diffComponents.hour! > 24 {
+                    showAlert(title: "Can't create events spanning more than a day", desc: "")
+                    return
+                }
+                
+                if diffComponents.hour! < 24 && checkBoxImage.isSelected {
+                    dateStartCal = dateStartCal.startOfDay!
+                    dateEndCal = dateEndCal.endOfDay!
+                }
+                if diffComponents.hour! >= 23 {
+                    
+                    checkBoxImage.isSelected = true
+                }
+                
+                var indexEvent = 0
+                var index = 0
+                for n in CalendarCareerViewController.events {
+                    if n.id == self.idEvent {
+                      indexEvent = index
+                    }
+                    index += 1
+                }
+                
+                //when a repeated event is edited, all four in the view are edited the same as well
+                if idEvent != -1 && repeatedCheckBoxImage.isSelected {
+                    for var n in CalendarCareerViewController.events {
+                        if n.repeatedEventId == CalendarCareerViewController.events[indexEvent].repeatedEventId {
+                            n = CalendarCareerViewController.events[indexEvent]
+                        }
+                    }
+                    Database.repeatEventEdit(event: CalendarCareerViewController.events[indexEvent])
+                }
+                /*
+                var indexEvent = 0
+                var index = 0
+                for n in CalendarCareerViewController.events {
+                    if n.id == self.idEvent {
+                      indexEvent = index
+                    }
+                    index += 1
+                }
+                
+               if self.idEvent != -1 && CalendarCareerViewController.events[indexEvent].repeated {
+           
+                    var index = 0
+                    for n in CalendarCareerViewController.events {
+                     
+                        if n.id == self.idEvent {
+                       
+                            CalendarCareerViewController.events.remove(at: index)
+                        }
+                        index += 1
+                    }
+                    
+                    NotificationCenter.default.post(name: .weeklyEventEdited, object: [ text, locationTextField.text!, false, dateStartCal, dateEndCal, color, checkBoxImage.isSelected])
+                    
+                    NotificationCenter.default.removeObserver(CalendarCareerViewController.self)
+                    
+                    NotificationCenter.default.post(name: .careerCalendarEdittedEvent, object: event)
+                    
+                    NotificationCenter.default.removeObserver(CalendarCareerViewController.self)
+                    
+                } else {*/
+                
+                //repeatedCheckBoxImage.isSelected is now false
+      
+                    self.delegate?.appendEvent(eventTitle: text, location: locationTextField.text!, repeated: false, startDate: dateStartCal, endDate: dateEndCal, isAllDay: checkBoxImage.isSelected, backgroundColor: color, idEvent: idEvent)
+                
+              //  }
+                if idEvent == -1 {
+                    showAlert(title: "Yay you created an event!", desc: "")
+                } else {
+                    showAlert(title: "Yay you saved an event!", desc: "")
+                }
+                self.closeModalPresentation()
+                
+            }
+        }
+    }
+    @objc func checkBoxTappedRepeat(_ sender: UIButton) {
+
+        if sender.isSelected == true {
+            sender.isSelected = false
+        } else if sender.isSelected == false {
+            sender.isSelected = true
+        }
+
+    }
+    @objc func checkBoxTapped(_ sender: UIButton) {
+
+        if sender.image(for: .normal) == UIImage(preferedName: "YellowColor") {
+        
+            if !yellowColor.isSelected && blueColor.isSelected {
+               blueColor.isSelected = false
+            }
+            if !yellowColor.isSelected && purpleColor.isSelected {
+               purpleColor.isSelected = false
+            }
+            if !yellowColor.isSelected && burgundyColor.isSelected {
+               burgundyColor.isSelected = false
+            }
+        } else if sender.image(for: .normal) == UIImage(preferedName: "BlueColor") {
+            if !blueColor.isSelected && yellowColor.isSelected {
+               yellowColor.isSelected = false
+            }
+            if !blueColor.isSelected && purpleColor.isSelected {
+               purpleColor.isSelected = false
+            }
+            if !blueColor.isSelected && burgundyColor.isSelected {
+               burgundyColor.isSelected = false
+            }
+        } else if sender.image(for: .normal) == UIImage(preferedName: "PurpleColor") {
+            if !purpleColor.isSelected && blueColor.isSelected {
+               blueColor.isSelected = false
+            }
+            if !purpleColor.isSelected && yellowColor.isSelected {
+               yellowColor.isSelected = false
+            }
+            if !purpleColor.isSelected && burgundyColor.isSelected {
+               burgundyColor.isSelected = false
+            }
+        } else if sender.image(for: .normal) == UIImage(preferedName: "BurgundyColor") {
+            if !burgundyColor.isSelected && blueColor.isSelected {
+               blueColor.isSelected = false
+            }
+            if !burgundyColor.isSelected && purpleColor.isSelected {
+               purpleColor.isSelected = false
+            }
+            if !burgundyColor.isSelected && yellowColor.isSelected {
+               yellowColor.isSelected = false
+            }
+        }
+
+        if sender.isSelected == true {
+               sender.isSelected = false
+           } else if sender.isSelected == false {
+               sender.isSelected = true
+           }
+    }
+    
+    func createDatePicker() {
+        datePickerTextField.textAlignment = .center
+        datePickerTextFieldEnd.textAlignment = .center
+
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        
+        let toolbarEnd = UIToolbar()
+        toolbarEnd.sizeToFit()
+        
+        let doneBtn = UIBarButtonItem(barButtonSystemItem: .done, target: nil, action: #selector(startTimePress))
+        toolbar.setItems([doneBtn], animated: true)
+        
+        datePickerTextField.inputAccessoryView = toolbar
+        datePickerTextField.inputView = datePicker
+
+        let doneBtnEnd = UIBarButtonItem(barButtonSystemItem: .done, target: nil, action: #selector(endTimePress))
+        toolbarEnd.setItems([doneBtnEnd], animated: true)
+        
+        datePickerTextFieldEnd.inputAccessoryView = toolbarEnd
+        datePickerTextFieldEnd.inputView = datePicker
+   
+    }
+    
+    func donePressed(choice: Int) {
+        //formatter
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        if choice == 1 {
+            datePickerTextField.text = formatter.string(from: datePicker.date)
+        }
+        if choice == 2 {
+            datePickerTextFieldEnd.text = formatter.string(from: datePicker.date)
+
+        }
+        self.view.endEditing(true)
+    }
+    
+    @objc func startTimePress() {
+        donePressed(choice: 1)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd/yyyy hh:mm a"
+        
+        startDateCal = self.datePicker.date
+    
+    }
+    
+    @objc func endTimePress() {
+        donePressed(choice: 2)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd/yyyy hh:mm a"
+        
+        endDateCal = self.datePicker.date
+    }
+    
+}
+
+protocol CreateCalendarEventModalDelegate: AnyObject {
+    
+    func appendEvent(eventTitle: String, location: String, repeated: Bool, startDate: Date, endDate: Date, isAllDay: Bool, backgroundColor: UIColor, idEvent: Int)
+    
+}
+extension Notification.Name {
+    
+    static let weeklyEventEdited = Notification.Name("weeklyEventEdited")
+    
+}
